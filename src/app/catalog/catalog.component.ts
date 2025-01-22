@@ -3,22 +3,20 @@ import { RouterLink } from '@angular/router';
 import { CurrencyPipe, NgFor, NgIf } from '@angular/common';
 
 import { BasketItem } from '../basket/basket.types';
-import { Product } from '../product/product.types';
+import { Product } from './product/product.types';
 import { ApiService } from '../shared/services/api.service';
-import { ProductComponent } from '../product/product.component';
+import { ProductComponent } from './product/product.component';
+import { BasketService } from '../basket/basket.service';
+import { CatalogService } from './catalog.service';
+import { first } from 'rxjs';
 
 @Component({
   selector: 'app-catalog',
-  imports: [ProductComponent, RouterLink, CurrencyPipe, NgIf, NgFor],
+  imports: [ProductComponent, RouterLink, CurrencyPipe],
   templateUrl: './catalog.component.html',
   styleUrl: './catalog.component.scss',
 })
-export class CatalogComponent {
-  products: Product[] = [];
-
-  get isStockEmpty(): boolean {
-    return this.products.every(({ stock }) => stock === 0);
-  }
+export class CatalogComponent { 
 
   get basketTotal(): number {
     return this.basketItems.reduce(
@@ -28,19 +26,15 @@ export class CatalogComponent {
   }
 
   private basketItems: BasketItem[] = [];
-  private apiService = inject(ApiService);
+  basketService = inject(BasketService);
+  catalogService = inject(CatalogService);
 
   constructor() {
-    this.apiService
-      .getProducts()
-      .subscribe((products) => (this.products = products));
-    this.apiService
-      .getBasket()
-      .subscribe((basketItems) => (this.basketItems = basketItems));
+    this.catalogService.fetch().pipe(first()).subscribe();
   }
 
   addToBasket(product: Product): void {
-    this.apiService.addToBasket(product.id).subscribe((basketItem) => {
+    this.basketService.addItem(product.id).subscribe((basketItem) => {
       this.basketItems.push(basketItem);
       this.decreaseStock(product);
     });
