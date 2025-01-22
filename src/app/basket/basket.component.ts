@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { BasketItem } from './basket.types';
 import { Customer } from '../customer/customer.types';
 import { ApiService } from '../shared/services/api.service';
+import { BasketService } from './basket.service';
 
 @Component({
   selector: 'app-basket',
@@ -16,12 +17,14 @@ export class BasketComponent {
   customer: Customer = { name: '', address: '', creditCard: '' };
   basketItems: BasketItem[] = [];
 
+
   get basketTotal(): number {
     return this.basketItems.reduce((total, { price }) => total + price, 0);
   }
 
   private apiService = inject(ApiService);
   private router = inject(Router);
+  private basketService = inject(BasketService);
 
   constructor() {
     this.apiService.getBasket().subscribe((basketItems) => (this.basketItems = basketItems));
