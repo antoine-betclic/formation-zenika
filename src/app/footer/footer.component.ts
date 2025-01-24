@@ -1,5 +1,5 @@
-import { Component, inject } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 
 import { ApiService } from '../shared/services/api.service';
 
@@ -7,7 +7,8 @@ import { ApiService } from '../shared/services/api.service';
   selector: 'app-footer',
   imports: [],
   templateUrl: './footer.component.html',
-  styleUrl: './footer.component.scss'
+  styleUrl: './footer.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FooterComponent {
   fullYear = new Date().getUTCFullYear();

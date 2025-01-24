@@ -1,50 +1,39 @@
-import { Component, inject } from '@angular/core';
+import { AsyncPipe, CurrencyPipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { CurrencyPipe, NgFor, NgIf } from '@angular/common';
 
-import { BasketItem } from '../basket/basket.types';
 import { Product } from './product/product.types';
-import { ApiService } from '../shared/services/api.service';
 import { ProductComponent } from './product/product.component';
 import { BasketService } from '../basket/basket.service';
 import { CatalogService } from './catalog.service';
-import { first } from 'rxjs';
 
 @Component({
   selector: 'app-catalog',
   imports: [ProductComponent, RouterLink, CurrencyPipe],
   templateUrl: './catalog.component.html',
   styleUrl: './catalog.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class CatalogComponent { 
+export class CatalogComponent implements OnInit {
+  private basketService = inject(BasketService);
+  private catalogService = inject(CatalogService);
 
-  get basketTotal(): number {
-    return this.basketItems.reduce(
-      (total: number, { price }) => total + price,
-      0
-    );
-  }
+  products = this.catalogService.products;
+  isStockEmpty = this.catalogService.isStockEmpty;
+  basketTotal = this.basketService.total;
 
-  private basketItems: BasketItem[] = [];
-  basketService = inject(BasketService);
-  catalogService = inject(CatalogService);
-
-  constructor() {
-    this.catalogService.fetch().pipe(first()).subscribe();
+  ngOnInit() {
+    this.basketService.fetch().subscribe();
+  
   }
 
   addToBasket(product: Product): void {
-    this.basketService.addItem(product.id).subscribe((basketItem) => {
-      this.basketItems.push(basketItem);
-      this.decreaseStock(product);
+    this.basketService.addItem(product.id).subscribe(() => {
+      this.catalogService.decreaseStock(product.id);
     });
   }
 
   isAvailable(product: Product): boolean {
-    return product.stock !== 0;
-  }
-
-  private decreaseStock(product: Product): void {
-    product.stock -= 1;
+    return this.catalogService.isAvailable(product);
   }
 }
